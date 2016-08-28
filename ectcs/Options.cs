@@ -14,11 +14,10 @@ namespace Ectcs
   {
     public EctOptions() { Ext = ""; }
 
-    public EctOptions(EctOptions src)
+    public EctOptions(EctOptions src) : this()
     {
       if (src == null)
       {
-        Ext = "";
         return;
       }
       Open = src.Open;
@@ -28,10 +27,12 @@ namespace Ectcs
       Watch = src.Watch;
       RootPath = src.RootPath;
       OnMemory = src.OnMemory;
+      DebugOutput = src.DebugOutput;
     }
 
     public string Open { get; set; } = "<%";
     public string Close { get; set; } = "%>";
+
     private string ext;
     public string Ext
     {
@@ -44,13 +45,14 @@ namespace Ectcs
         }
         ExtRegex = new Regex(Regex.Escape(value) + "$");
         ext = value;
-
       }
     }
+
     public Regex ExtRegex { get; private set; }
     public bool Cache { get; set; } = true;
     public bool Watch { get; set; } = false;
     public string RootPath { get; set; } = null;
     public EctTemplateOnMemory OnMemory { get; set; } = null;
+    public bool DebugOutput { get; set; } = false;
   }
 }

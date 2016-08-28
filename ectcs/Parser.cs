@@ -17,6 +17,7 @@ namespace Ectcs
     private Dictionary<string, ParameterExpression> variables = new Dictionary<string, ParameterExpression>();
     private ParameterExpression self = Expression.Parameter(typeof(object), "self");
     private ParameterExpression context = Expression.Parameter(typeof(EctRuntimeContext), "context");
+    private const string DefaultBlockName = "content";
 
     public EctCompiler(EctLexer lexer)
     {
@@ -45,6 +46,25 @@ namespace Ectcs
       var statements = new List<Expression>();
       ParseStatements(statements);
       CheckCurrentToken(EctToken.Eof);
+      if (extended != null)
+      {
+        if (blocks.ContainsKey(DefaultBlockName))
+        {
+          throw new InvalidProgramException();
+        }
+        blocks[DefaultBlockName] = Expression.Block(statements);
+        statements = new List<Expression>();
+        foreach(var b in blocks)
+        {
+          var blockName = b.Key;
+          var body = b.Value;
+          var parameters = new[] { context, self };
+          var blockLambda = Expression.Lambda<Action<EctRuntimeContext, object>>(body, parameters);
+          var defineBlock = Expression.Call(context, EctRuntimeContext.DefineBlockMethod, Expression.Constant(blockName), blockLambda); ;
+          statements.Add(defineBlock);
+        }
+        statements.Add(extended);
+      }
 
       if (errors.Count != 0)
       {
@@ -63,46 +83,68 @@ namespace Ectcs
       }
     }
 
-    private Expression ParseLayout()
+    private MethodCallExpression extended;
+    private Dictionary<string, BlockExpression> blocks;
+
+    private bool ParseLayout()
     {
+      if (extended != null)
+      {
+        SyntaxError("Already extended");
+        return false;
+      }
+
       lexer.NextToken();
       if (!CheckCurrentToken(EctToken.Literal_String))
       {
-        return null;
+        return false;
       }
       var layoutName = lexer.CurrentValue;
       lexer.NextToken();
 
-      return Expression.Call(context, EctRuntimeContext.IncludeMethod, Expression.Constant(layoutName), Expression.Constant(null));
+      extended = Expression.Call(context, EctRuntimeContext.IncludeMethod, Expression.Constant(layoutName), Expression.Constant(null));
+      blocks = new Dictionary<string, BlockExpression>();
+
+      return true;
     }
 
-    private Expression ParseBlock()
+    private bool ParseBlock()
     {
       string blockName;
       lexer.NextToken();
-      if (lexer.CurrentToken == EctToken.Literal_String)
+      if (!CheckCurrentToken(EctToken.Literal_String))
       {
-        blockName = lexer.CurrentValue;
-        lexer.NextToken();
+        return false;
       }
-      else
-      {
-        blockName = "content";
-      }
+
+      blockName = lexer.CurrentValue;
+      lexer.NextToken();
+
       ParseIndent();
 
       var block = new List<Expression>();
       ParseStatements(block);
       if (!CheckCurrentToken(EctToken.Keyword_End))
       {
-        return null;
+        return false;
       }
       lexer.NextToken();
 
-      var body = Expression.Block(block);
-      var parameters = new[] { context, self };
-      var blockLambda = Expression.Lambda<Action<EctRuntimeContext, object>>(body, parameters);
-      return Expression.Call(context, EctRuntimeContext.DefineBlockMethod, Expression.Constant(blockName), blockLambda);
+      if (blockName == DefaultBlockName)
+      {
+        SyntaxError($"block name '{DefaultBlockName}' was reserved");
+        return false;
+      }
+
+      if (blocks.ContainsKey(blockName))
+      {
+        SyntaxError($"block '{blockName}' was defined already.");
+        return false;
+      }
+
+      blocks[blockName] = Expression.Block(block);
+
+      return true;
     }
 
     private void ParseStatements(List<Expression> statements)
@@ -119,10 +161,16 @@ namespace Ectcs
             e = ParseHtml();
             break;
           case EctToken.Keyword_Extend:
-            e = ParseLayout();
+            if (!ParseLayout())
+            {
+              return;
+            }
             break;
           case EctToken.Keyword_Block:
-            e = ParseBlock();
+            if (!ParseBlock())
+            {
+              return;
+            }
             break;
           case EctToken.Keyword_Content:
             e = ParseContent();
@@ -176,7 +224,7 @@ namespace Ectcs
       }
       else
       {
-        contentBlockName = "content";
+        contentBlockName = DefaultBlockName;
       }
       var blockLambda = Expression.Call(context, EctRuntimeContext.CallBlockMethod, Expression.Constant(contentBlockName));
       return Expression.Invoke(blockLambda, context, self);

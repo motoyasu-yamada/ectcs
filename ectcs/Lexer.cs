@@ -67,6 +67,7 @@ namespace Ectcs
     public int ColNumber { get; private set; }
     public EctToken CurrentToken { get; private set; }
     public string CurrentValue { get; private set; }
+    public bool DebugOutput { get; set; } = false;
 
     private string openTag;
     private string closeTag;
@@ -262,7 +263,10 @@ loop:
         goto finish;
       }
 finish:
-      Debug.WriteLine("{0},{1}", CurrentToken, CurrentValue);
+      if (DebugOutput)
+      {
+        Debug.WriteLine("{0},{1}", CurrentToken, CurrentValue);
+      }
       return CurrentToken;
     }
 
