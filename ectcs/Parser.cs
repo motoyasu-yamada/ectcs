@@ -924,8 +924,14 @@ namespace Ectcs
           }
           var ident = lexer.CurrentValue;
           lexer.NextToken();
-          return Getter(e, ident, op == EctToken.QuestionDot);
-        
+          if (op == EctToken.QuestionDot)
+          {
+            return MakeGetterIfNotNull(e, ident);
+          }
+          else
+          {
+            return MakeGetter(e, ident);
+          }        
         //case EctToken.ArrayStart:
         //  ParseBrackets(e);
         //  break;
@@ -943,31 +949,29 @@ namespace Ectcs
       }
       var ident = lexer.CurrentValue;
       lexer.NextToken();
-      return Getter(self, ident);
+      return MakeGetter(self, ident);
     }
 
-    private Expression Getter(Expression target, string propertyName, bool allowNull = false)
+    private Expression MakeGetter(Expression target, string propertyName)
     {
-      var getter = Expression.Call(null, EctRuntime.GetterMethod, target, Expression.Constant(propertyName));
-      if (allowNull)
-      {
-        var resultVariable = Expression.Variable(typeof(object));
-        var tempVariable = Expression.Variable(typeof(object));
-        var nullValue = Expression.Constant(null, typeof(object));
-        var nullCheck = Expression.NotEqual(tempVariable, nullValue);
+      return Expression.Call(null, EctRuntime.GetterMethod, target, Expression.Constant(propertyName));
+    }
 
-        return Expression.Block
-          (
-            Expression.Assign(resultVariable, nullValue),
-            Expression.Assign(tempVariable, target),
-            Expression.IfThen(nullCheck, Expression.Assign(resultVariable,getter)),
-            resultVariable
-          );
-      }
-      else
-      {
-        return getter;
-      }
+    private Expression MakeGetterIfNotNull(Expression target, string propertyName)
+    {
+      var resultVariable = Expression.Variable(typeof(object));
+      var tempVariable = Expression.Variable(typeof(object));
+      var nullValue = Expression.Constant(null, typeof(object));
+      var nullCheck = Expression.NotEqual(tempVariable, nullValue);
+      var getter = Expression.Call(null, EctRuntime.GetterMethod, tempVariable, Expression.Constant(propertyName));
+      return Expression.Block
+        (
+          new ParameterExpression[] { resultVariable , tempVariable },
+          Expression.Assign(resultVariable, nullValue),
+          Expression.Assign(tempVariable, target),
+          Expression.IfThen(nullCheck, Expression.Assign(resultVariable,getter)),
+          resultVariable
+        );
       //var arg = CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null);
       //var getBinder = RuntimeBinder.GetMember(CSharpBinderFlags.None, propertyName, typeof(EctCompiler), new[] { arg });
       //return Expression.Dynamic(getBinder, typeof(object), target);

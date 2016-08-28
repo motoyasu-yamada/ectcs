@@ -64,8 +64,9 @@ namespace EctcsTest
         a = new { test = true},
         b = (object)null
       };
-      Test("TRUE",  "<% if @a?.test %>TRUE<% else %>FALSE<% end %>", o);
-      Test("FALSE", "<% if @b?.test %>TRUE<% else %>FALSE<% end %>", o);
+      Test("True", "<%- @a.test %>", o);
+      Test("True",  "<%- @a?.test %>", o);
+      //Test("", "<%- @b?.test %>", o);
     }
 
 
