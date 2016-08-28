@@ -563,7 +563,7 @@ namespace Ectcs
       return Expression.Call(null, EctRuntime.InvokeMethod, parameters);// parameters);
     }
 
-    private Expression ParseCallExpression()
+    private Expression ParseCallExpression(bool callByMe = false)
     {
       Expression me = ParseMemberExpression();
       if (me != null)
@@ -575,8 +575,11 @@ namespace Ectcs
         }
         return me;
       }
-
-      Expression ce = ParseCallExpression();
+      if (callByMe)
+      {
+        return null;
+      }
+      Expression ce = ParseCallExpression(true);
       if (ce == null)
       {
         return null;
