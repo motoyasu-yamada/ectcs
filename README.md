@@ -4,6 +4,13 @@ Fastest C# template engine with ect syntax
 ## Feature
 This template engine compiles templates to native C# runtime by using Linq.Expression
 
+## Usage
+See ectcs/ectcs_test/SampleTest.cs
+```cs
+var ect = new Ect();
+var html = ect.Render("page",  new { title = "Hello, World!" });
+```
+
 ## Deference from original JavaScript version
 - Use paren '(', ')' when calling function
 - Only a part of CoffeScript expressions are supported
