@@ -8,13 +8,14 @@ namespace EctcsTest
   [TestClass]
   public class SampleTest
   {
-    private static readonly string list = @"<% linkHelper = (link) -> %>
-    <li><a href=""<%- link.url %>""><%- link.name %></a></li>
+    private static readonly string list = 
+@"<% linkHelper = (link) -> %>
+  <li><a href=""<%- link.url %>""><%- link.name %></a></li>
 <% end %>
 <% if @links?.Length : %>
     <ul>
         <% for link in @links : %>
-            <%- linkHelper link %>
+            <%- linkHelper(link) %>
         <% end %>
     </ul>
 <% else : %>
@@ -101,7 +102,7 @@ namespace EctcsTest
         id = "main",
         links = new object[]
         {
-            new { ame = "Google", url = "http://google.com/" },
+            new { name = "Google", url = "http://google.com/" },
             new { name = "Facebook", url = "http://facebook.com/" },
             new { name = "Twitter", url = "http://twitter.com/" }
         },

@@ -24,7 +24,7 @@ namespace Ectcs
     private Dictionary<string, Expression<Action<EctRuntimeContext, object>>> blocks = new Dictionary<string, Expression<Action<EctRuntimeContext, object>>>();
 
     private static readonly Expression<Action<EctRuntimeContext, object>> emptyBlock = (c, o) => Debug.WriteLine("*** Empty Block ***");
-      
+
     public EctRuntimeContext(Ect ect, object self)
     {
       this.ect = ect;
@@ -33,7 +33,7 @@ namespace Ectcs
 
     public string Rendered => output.ToString();
 
-    public void DefineBlock(string name, Expression<Action<EctRuntimeContext,object>> lambda)
+    public void DefineBlock(string name, Expression<Action<EctRuntimeContext, object>> lambda)
     {
       Debug.WriteLine("+++++ DefineBlock: {0}, {1}", name, lambda);
       blocks[name] = lambda;
@@ -72,6 +72,16 @@ namespace Ectcs
       output.Append(ToString(s));
     }
 
-    private string ToString(object o) => o == null ? "(null)" : o.ToString();
+    private string ToString(object o)
+    {
+      if (o == null)
+      {
+        return "";
+      }
+      else
+      {
+        return o.ToString();
+      }
+    }
   }
 }

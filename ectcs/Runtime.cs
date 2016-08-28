@@ -111,7 +111,8 @@ finish:
         value = f.GetValue(target);
         goto finish;
       }
-      throw new ArgumentException("name");
+      // TODO: as options, avoid exception
+      throw new ArgumentException($"Member '{name}' doesn't exist in object'{target}'");
 finish:
 //Debug.WriteLine("{0} \n-> {1} \n= {2}", VarDump.ToString(target), name, VarDump.ToString(value));
       return value;
