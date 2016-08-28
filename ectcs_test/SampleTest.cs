@@ -11,7 +11,7 @@ namespace EctcsTest
     private static readonly string list = @"<% linkHelper = (link) -> %>
     <li><a href=""<%- link.url %>""><%- link.name %></a></li>
 <% end %>
-<% if @links?.length : %>
+<% if @links?.Length : %>
     <ul>
         <% for link in @links : %>
             <%- linkHelper link %>

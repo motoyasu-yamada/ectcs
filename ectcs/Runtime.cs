@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -35,6 +36,16 @@ namespace Ectcs
       if (test is string)
       {
         r = String.IsNullOrEmpty(test as string);
+        goto finish;
+      }
+      if (test is Array)
+      {
+        r = (test as Array).Length != 0;
+        goto finish;
+      }
+      if (test is IEnumerable)
+      {
+        r = (test as IEnumerable).GetEnumerator().MoveNext();
         goto finish;
       }
       if (test is char)
