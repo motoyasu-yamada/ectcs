@@ -49,7 +49,43 @@ namespace EctcsTest
 </html>";
 
     [TestMethod]
-    [Priority(0)]
+    public void TestIf()
+    {
+      Test("TRUE", "<% if @test %>TRUE<% end %>", new { test = true});
+      Test("TRUE", "<% if @test %>TRUE<% else %>FALSE<% end %>", new { test = true });
+      Test("FALSE", "<% if @test %>TRUE<% else %>FALSE<% end %>", new { test = false });
+    }
+
+    [TestMethod]
+    public void TestAccessor()
+    {
+      var o = new
+      {
+        a = new { test = true},
+        b = (object)null
+      };
+      Test("TRUE",  "<% if @a?.test %>TRUE<% else %>FALSE<% end %>", o);
+      Test("FALSE", "<% if @b?.test %>TRUE<% else %>FALSE<% end %>", o);
+    }
+
+
+    private void Test(string expected, string template, object self, EctOptions options = null)
+    {
+      options = options ?? new EctOptions();
+      var ect = new Ect();
+      var context = new EctRuntimeContext(ect, self);
+
+      var lexer = new EctLexer("<void>", template, 0, template.Length, options);
+      var parser = new EctCompiler(lexer);
+      var lambda = parser.Compile();
+
+      lambda(context, self);
+      var result = context.Rendered;
+      Debug.WriteLine("TEMPLATE =====>\n {0}\n\n RENDERED ====>\n{1}\n\n", template, result);
+      Assert.AreEqual(expected, result);
+    }
+
+    [TestMethod]
     public void TestCompileNow()
     {
       var memory = new EctTemplateOnMemory();
