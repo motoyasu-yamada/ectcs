@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ectcs
+namespace Ectcs
 {
   public static class EctRuntime
   {

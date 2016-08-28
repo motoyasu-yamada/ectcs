@@ -5,6 +5,13 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ectcs", "ectcs\ectcs.csproj", "{55AF5F30-AB5D-4838-A985-17DD3D2114D8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{9AC2D62F-49AB-43AE-BE2D-08A3A91C859B}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ectcs_test", "ectcs_test\ectcs_test.csproj", "{44FD8591-8018-4294-AC9E-06163D92CA7E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +22,10 @@ Global
 		{55AF5F30-AB5D-4838-A985-17DD3D2114D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55AF5F30-AB5D-4838-A985-17DD3D2114D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55AF5F30-AB5D-4838-A985-17DD3D2114D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44FD8591-8018-4294-AC9E-06163D92CA7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44FD8591-8018-4294-AC9E-06163D92CA7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44FD8591-8018-4294-AC9E-06163D92CA7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44FD8591-8018-4294-AC9E-06163D92CA7E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

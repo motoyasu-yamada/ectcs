@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ectcs
+namespace Ectcs
 {
   public class EctCompiler
   {
@@ -99,7 +99,9 @@ namespace ectcs
       }
       lexer.NextToken();
 
-      var blockLambda = Expression.Lambda(Expression.Block(block), new[] { context, self });
+      var body = Expression.Block(block);
+      var parameters = new[] { context, self };
+      var blockLambda = Expression.Lambda<Action<EctRuntimeContext, object>>(body, parameters);
       return Expression.Call(context, EctRuntimeContext.DefineBlockMethod, Expression.Constant(blockName), blockLambda);
     }
 
@@ -154,6 +156,7 @@ namespace ectcs
       if (lexer.CurrentToken == EctToken.Literal_String)
       {
         contentBlockName = lexer.CurrentValue;
+        lexer.NextToken();
       }
       else
       {

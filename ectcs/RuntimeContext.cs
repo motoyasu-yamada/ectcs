@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
@@ -7,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ectcs
+namespace Ectcs
 {
   public class EctRuntimeContext
   {
@@ -20,8 +21,10 @@ namespace ectcs
     private StringBuilder output = new StringBuilder();
     private Ect ect;
     private object self;
-    private Dictionary<string, LambdaExpression> blocks = new Dictionary<string, LambdaExpression>();
+    private Dictionary<string, Expression<Action<EctRuntimeContext, object>>> blocks = new Dictionary<string, Expression<Action<EctRuntimeContext, object>>>();
 
+    private static readonly Expression<Action<EctRuntimeContext, object>> emptyBlock = (c, o) => Debug.WriteLine("*** Empty Block ***");
+      
     public EctRuntimeContext(Ect ect, object self)
     {
       this.ect = ect;
@@ -30,14 +33,22 @@ namespace ectcs
 
     public string Rendered => output.ToString();
 
-    public void DefineBlock(string name, LambdaExpression lambda)
+    public void DefineBlock(string name, Expression<Action<EctRuntimeContext,object>> lambda)
     {
+      Debug.WriteLine("+++++ DefineBlock: {0}, {1}", name, lambda);
       blocks[name] = lambda;
     }
 
-    public LambdaExpression CallBlock(string name)
+    public Expression<Action<EctRuntimeContext, object>> CallBlock(string name)
     {
-      return blocks[name];
+      Debug.WriteLine("+++++ CallBlock: {0}", name, null);
+
+      Expression<Action<EctRuntimeContext, object>> block = null;
+      if (!blocks.TryGetValue(name, out block))
+      {
+        block = emptyBlock;
+      }
+      return block;
     }
 
     public void Include(string name, object argument)
