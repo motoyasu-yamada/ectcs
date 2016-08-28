@@ -1,6 +1,16 @@
 # ectcs
 Fastest C# template engine with ect syntax
 
+## Feature
+This template engine compiles templates to native C# runtime by using Linq.Expression
+
+## Deference from original JavaScript version
+- Use paren '(', ')' when calling function
+- Only a part of CoffeScript expressions are supported
+
+## Known bug
+- Ident feature is not supported now
+
 ## License
 (The MIT License)
 Copyright (c) 2016 Motoyasu Yamada
