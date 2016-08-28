@@ -22,14 +22,14 @@ namespace EctcsTest
 <% end %>
 ";
 
-    private static readonly string page = @"<% extend 'layout' %>
+    private static readonly string page = 
+@"<% extend 'layout' %>
 <div id=""<%- @id %>"">
-<h1><%- @upperHelper(@title) %></h1>
-<% include 'list' %>
+  <h1><%- @upperHelper(@title) %></h1>
+  <% include 'list' %>
 </div>
 <% block 'footer-info' : %>
-<div class=\""right\"">page: main</div>
-<div><%- @id %></div>
+  <div class=""right"">page: main</div>
 <% end %>";
 
     private static readonly string footer = @"<div id=""footer"">

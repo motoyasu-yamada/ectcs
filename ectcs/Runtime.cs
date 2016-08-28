@@ -128,14 +128,17 @@ finish:
         throw new ArgumentException("parameters");
       }
 
-      var type = lambda.GetType();
-      Debug.WriteLine("Invoke: Type: {0}, Object: {1}", type, lambda);
-      foreach (var p in parameters)
-      {
-        var ptype = p.GetType();
-        Debug.WriteLine("\n: Type: {0}, Object: {1}", ptype, p);
-      }
-      return "********************";
+      var f = lambda as Delegate;
+      return f.DynamicInvoke(parameters);
+      //var type = lambda.GetType();
+      //Debug.WriteLine(">>>>> InvokeERROR:\n Type: {0}, Object: {1}", type, lambda);
+      //foreach (var p in parameters)
+      //{
+      //  var ptype = p.GetType();
+      //  Debug.WriteLine("\n: Type: {0}, Object: {1}", ptype, p);
+      //}
+      //Debug.WriteLine("<<<<<");
+      //return "********************";
     }
   }
 }
