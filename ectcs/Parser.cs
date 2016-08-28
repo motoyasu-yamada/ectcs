@@ -139,8 +139,24 @@ namespace Ectcs
           case EctToken.Keyword_For:
             e = ParseFor();
             break;
-          default:
+          case EctToken.Keyword_Switch:
+            e = ParseSwitch();
+            break;
+          case EctToken.Keyword_If:
+            e = ParseIf();
+            break;
+          case EctToken.Keyword_Else:
+          case EctToken.Keyword_End:
+          case EctToken.Keyword_In:
+          case EctToken.Keyword_When:
             return;
+          default:
+            e = ParseAssignmentExpression();
+            if (e == null)
+            {
+              return;
+            }
+            break;
         }
         if (e != null)
         {
@@ -347,6 +363,17 @@ namespace Ectcs
       return ParseAssignmentExpression();
     }
 
+    private Expression MakeParenExpression(List<Expression> expressions)
+    {
+      if (expressions.Count == 0)
+      {
+        SyntaxError("Empty paren expression");
+        return null;
+      }
+      return Expression.Block(expressions);
+
+    }
+
     private Expression ParseParenOrLambdaExpression()
     {
       if (!CheckCurrentToken(EctToken.ParenStart))
@@ -356,9 +383,13 @@ namespace Ectcs
       lexer.NextToken();
 
       var expressions = new List<Expression>();
-      if (lexer.CurrentToken != EctToken.ParenEnd)
+      if (lexer.CurrentToken == EctToken.ParenEnd)
       {
-        for (;;)
+        lexer.NextToken();
+      }
+      else
+      {
+        for(var c = true; c;)
         {
           var e = ParseAssignmentExpression();
           if (e == null)
@@ -370,25 +401,21 @@ namespace Ectcs
             return null;
           }
           expressions.Add(e);
+          c = lexer.CurrentToken == EctToken.Comma;
           lexer.NextToken();
         }
       }
-      if (!CheckCurrentToken(EctToken.ParenEnd))
-      {
-        return null;
-      }
-      lexer.NextToken();
 
       if (lexer.CurrentToken != EctToken.Lambda)
       {
-        return Expression.Block(expressions);
+        return MakeParenExpression(expressions);
       }
       lexer.NextToken();
 
       var mustBeParen = !expressions.All(e => e is ParameterExpression);
       if (mustBeParen)
       {
-        return Expression.Block(expressions);
+        return MakeParenExpression(expressions);
       }
 
       var startToken = lexer.CurrentToken;
@@ -399,6 +426,8 @@ namespace Ectcs
       {
         return null;
       }
+      lexer.NextToken();
+
       var lambdaBody = Expression.Block(statements);
       var parameters = expressions.Select(e => e as ParameterExpression);
 
@@ -823,7 +852,7 @@ namespace Ectcs
       }
 
       var ce = ParseConditionalExpression(left);
-      if (left == ce)
+      if (left != ce)
       {
         return ce;
       }
@@ -835,7 +864,7 @@ namespace Ectcs
       }
       lexer.NextToken();
 
-      var right = ParseAdditiveExpression();
+      var right = ParseAssignmentExpression();
       if (right == null)
       {
         return null;
