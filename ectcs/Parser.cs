@@ -185,7 +185,7 @@ namespace Ectcs
 
     private Expression Test(Expression test)
     {
-      return Expression.Call(context, EctRuntime.TestMethod, test);
+      return Expression.Call(null, EctRuntime.TestMethod, test);
     }
 
     private Expression ParseSwitch()
@@ -198,6 +198,7 @@ namespace Ectcs
         SyntaxError("switch requires test expression");
         return null;
       }
+      ParseIndent();
 
       Expression defaultBody = null;
       var cases = new List<SwitchCase>();
@@ -209,7 +210,10 @@ namespace Ectcs
         {
           case EctToken.Keyword_When:
             lexer.NextToken();
+
             Expression caseTestValue = ParseAssignmentExpression();
+            ParseIndent();
+
             statements = new List<Expression>();
             ParseStatements(statements);
             if (!CheckCurrentToken(EctToken.Keyword_End))
@@ -219,11 +223,16 @@ namespace Ectcs
             cases.Add(Expression.SwitchCase(Expression.Block(statements), caseTestValue));
             break;
           case EctToken.Keyword_Else:
+            lexer.NextToken();
+
             if (defaultBody != null)
             {
               SyntaxError("Duplicated else");
               return null;
             }
+
+            ParseIndent();
+
             statements = new List<Expression>();
             ParseStatements(statements);
             if (!CheckCurrentToken(EctToken.Keyword_End))
@@ -233,7 +242,9 @@ namespace Ectcs
             defaultBody = Expression.Block(statements);
             break;
           case EctToken.Keyword_End:
-            finish = false;
+            finish = true;
+            lexer.NextToken();
+            ParseIndent();
             break;
           default:
             SyntaxError("switch requires when, else or end.");
@@ -254,6 +265,8 @@ namespace Ectcs
         SyntaxError("if requires test expression");
         return null;
       }
+      ParseIndent();
+
       var ifTrue = new List<Expression>();
       ParseStatements(ifTrue);
 
@@ -261,6 +274,7 @@ namespace Ectcs
       if (lexer.CurrentToken == EctToken.Keyword_Else)
       {
         lexer.NextToken();
+        ParseIndent();
         ParseStatements(ifFalse);
       }
 
@@ -268,6 +282,7 @@ namespace Ectcs
       {
         return null;
       }
+      lexer.NextToken();
 
       return Expression.IfThenElse(
         Test(test),
@@ -293,6 +308,7 @@ namespace Ectcs
       lexer.NextToken();
 
       var collection = ParseAssignmentExpression();
+      ParseIndent();
 
       var loopContent = new List<Expression>();
       ParseStatements(loopContent);
@@ -896,18 +912,20 @@ namespace Ectcs
 
     private Expression ParsePropertyOperator(Expression e)
     {
-      var t = lexer.CurrentToken;
-      switch (t)
+      var op = lexer.CurrentToken;
+      switch (op)
       {
         case EctToken.Dot:
-          t = lexer.NextToken();
+        case EctToken.QuestionDot:
+          lexer.NextToken();
           if (!CheckCurrentToken(EctToken.Ident))
           {
             return null;
           }
           var ident = lexer.CurrentValue;
           lexer.NextToken();
-          return Getter(e, ident);
+          return Getter(e, ident, op == EctToken.QuestionDot);
+        
         //case EctToken.ArrayStart:
         //  ParseBrackets(e);
         //  break;
@@ -928,10 +946,28 @@ namespace Ectcs
       return Getter(self, ident);
     }
 
-    private Expression Getter(Expression target, string propertyName)
+    private Expression Getter(Expression target, string propertyName, bool allowNull = false)
     {
-      return Expression.Call(null, EctRuntime.GetterMethod, target, Expression.Constant(propertyName));
+      var getter = Expression.Call(null, EctRuntime.GetterMethod, target, Expression.Constant(propertyName));
+      if (allowNull)
+      {
+        var resultVariable = Expression.Variable(typeof(object));
+        var tempVariable = Expression.Variable(typeof(object));
+        var nullValue = Expression.Constant(null, typeof(object));
+        var nullCheck = Expression.NotEqual(tempVariable, nullValue);
 
+        return Expression.Block
+          (
+            Expression.Assign(resultVariable, nullValue),
+            Expression.Assign(tempVariable, target),
+            Expression.IfThen(nullCheck, Expression.Assign(resultVariable,getter)),
+            resultVariable
+          );
+      }
+      else
+      {
+        return getter;
+      }
       //var arg = CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null);
       //var getBinder = RuntimeBinder.GetMember(CSharpBinderFlags.None, propertyName, typeof(EctCompiler), new[] { arg });
       //return Expression.Dynamic(getBinder, typeof(object), target);

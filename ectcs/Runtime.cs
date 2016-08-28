@@ -20,7 +20,7 @@ namespace Ectcs
       return x + y;
     }
 
-    public static object Test(object test, bool reverse = false)
+    public static bool Test(object test)
     {
       bool r;
       if (test == null)
@@ -86,7 +86,7 @@ namespace Ectcs
 
       r = true;
 finish:
-      return reverse ? (!r) : r;
+      return r;
     }
 
 
